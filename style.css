@@ -2005,3 +2005,26 @@ input, select, textarea, button {
   font-size: 12px;
   padding: 4px 12px;
 }
+
+/* ============================================================
+   31. APP FOOTER
+   ============================================================ */
+.app-footer {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.app-footer a {
+  color: var(--accent);
+  font-weight: 600;
+  transition: color var(--transition);
+}
+
+.app-footer a:hover {
+  color: var(--primary-dark);
+}
+
