@@ -321,6 +321,7 @@ input, select, textarea, button {
   padding: 32px;
   min-height: 100vh;
   transition: margin-left var(--transition);
+  min-width: 0;
 }
 
 /* ============================================================
