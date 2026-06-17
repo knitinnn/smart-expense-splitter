@@ -211,6 +211,23 @@ function toggleDarkMode() {
 }
 
 /* ============================================================
+   5b. PASSWORD VISIBILITY TOGGLE
+   ============================================================ */
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const isPassword = input.type === 'password';
+  input.type = isPassword ? 'text' : 'password';
+  const eyeOpen = btn.querySelector('.eye-open');
+  const eyeClosed = btn.querySelector('.eye-closed');
+  if (eyeOpen && eyeClosed) {
+    eyeOpen.style.display = isPassword ? 'none' : 'block';
+    eyeClosed.style.display = isPassword ? 'block' : 'none';
+  }
+  btn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+}
+
+/* ============================================================
    6. TOAST NOTIFICATIONS
    ============================================================ */
 function showToast(type, title, message) {
@@ -868,7 +885,7 @@ function openExpenseModal(expenseId) {
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Amount (₹)</label>
-        <input class="form-input" type="number" id="expense-amount" placeholder="0" min="0" step="0.01" value="${expense ? expense.amount : ''}" oninput="updateContributorTotal()" />
+        <input class="form-input" type="number" id="expense-amount" placeholder="0" min="0" step="0.01" value="${expense ? expense.amount : ''}" oninput="clampAllContributors()" />
       </div>
       <div class="form-group">
         <label class="form-label">Category</label>
@@ -947,7 +964,7 @@ function addContributorRowWith(memberId, amount, options) {
   row.className = 'contributor-row';
   row.innerHTML = `
     <select class="form-input form-select contributor-member">${options}</select>
-    <input class="form-input contributor-amount" type="number" placeholder="Amount" min="0" step="0.01" value="${amount}" oninput="updateContributorTotal()" />
+    <input class="form-input contributor-amount" type="number" placeholder="Amount" min="0" step="0.01" value="${amount}" oninput="clampContributorAmount(this)" />
     <button class="btn btn-ghost btn-icon btn-sm" type="button" onclick="this.parentElement.remove(); updateContributorTotal()">❌</button>
   `;
   container.appendChild(row);
@@ -957,6 +974,63 @@ function addContributorRowWith(memberId, amount, options) {
     const sel = row.querySelector('.contributor-member');
     sel.value = memberId;
   }
+}
+
+/**
+ * Clamp a single contributor amount so the total of all contributors
+ * never exceeds the expense amount. Called on every keystroke/input.
+ */
+function clampContributorAmount(inputEl) {
+  const expenseTotal = parseFloat(document.getElementById('expense-amount')?.value) || 0;
+  if (expenseTotal <= 0) {
+    inputEl.value = '';
+    updateContributorTotal();
+    return;
+  }
+
+  // Sum all OTHER contributor amounts (not the one being edited)
+  let othersSum = 0;
+  document.querySelectorAll('.contributor-row').forEach(row => {
+    const amtInput = row.querySelector('.contributor-amount');
+    if (amtInput !== inputEl) {
+      othersSum += parseFloat(amtInput.value) || 0;
+    }
+  });
+
+  const maxAllowed = Math.max(0, +(expenseTotal - othersSum).toFixed(2));
+  let val = parseFloat(inputEl.value) || 0;
+
+  // Don't allow negative values
+  if (val < 0) val = 0;
+
+  // Clamp to maximum allowed
+  if (val > maxAllowed) {
+    inputEl.value = maxAllowed;
+  }
+
+  updateContributorTotal();
+}
+
+/**
+ * When the expense amount changes, re-clamp all existing contributor amounts.
+ */
+function clampAllContributors() {
+  const expenseTotal = parseFloat(document.getElementById('expense-amount')?.value) || 0;
+  let runningSum = 0;
+
+  document.querySelectorAll('.contributor-row').forEach(row => {
+    const amtInput = row.querySelector('.contributor-amount');
+    let val = parseFloat(amtInput.value) || 0;
+    const remaining = Math.max(0, +(expenseTotal - runningSum).toFixed(2));
+
+    if (val > remaining) {
+      val = remaining;
+      amtInput.value = val > 0 ? val : '';
+    }
+    runningSum += val;
+  });
+
+  updateContributorTotal();
 }
 
 function updateContributorTotal() {
