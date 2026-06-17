@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Smart Bill Splitter – Split expenses, manage group settlements, and track shared costs with ease." />
+  <title>Smart Bill Splitter</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       TOAST CONTAINER
+       ============================================================ -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ============================================================
+       MODAL OVERLAY (reusable)
+       ============================================================ -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div id="modal-box" class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">Modal</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer" id="modal-footer"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       AUTH: SIGNUP PAGE
+       ============================================================ -->
+  <div id="view-signup" class="view">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <div class="auth-logo-icon">💰</div>
+          <h1>Smart Bill Splitter</h1>
+          <p>Split expenses, not friendships</p>
+        </div>
+        <h2>Create Account</h2>
+        <p class="auth-subtitle">Sign up to start splitting bills smartly</p>
+        <form id="signup-form" autocomplete="off">
+          <div class="form-group">
+            <label class="form-label" for="signup-name">Full Name</label>
+            <input class="form-input" type="text" id="signup-name" placeholder="Enter your full name" />
+            <div class="form-error" id="signup-name-error"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="signup-phone">Phone Number</label>
+            <input class="form-input" type="tel" id="signup-phone" placeholder="Enter phone number" />
+            <div class="form-error" id="signup-phone-error"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="signup-username">Username</label>
+            <input class="form-input" type="text" id="signup-username" placeholder="Choose a username" />
+            <div class="form-error" id="signup-username-error"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="signup-password">Password</label>
+            <input class="form-input" type="password" id="signup-password" placeholder="Minimum 8 characters" />
+            <div class="form-error" id="signup-password-error"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="signup-confirm">Confirm Password</label>
+            <input class="form-input" type="password" id="signup-confirm" placeholder="Re-enter password" />
+            <div class="form-error" id="signup-confirm-error"></div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="signup-btn">Create Account</button>
+        </form>
+        <div class="auth-footer">
+          Already have an account? <a href="#" onclick="showView('login'); return false;">Sign In</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       AUTH: LOGIN PAGE
+       ============================================================ -->
+  <div id="view-login" class="view">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <div class="auth-logo-icon">💰</div>
+          <h1>Smart Bill Splitter</h1>
+          <p>Split expenses, not friendships</p>
+        </div>
+        <h2>Welcome Back</h2>
+        <p class="auth-subtitle">Sign in to continue managing your expenses</p>
+        <form id="login-form" autocomplete="off">
+          <div class="form-group">
+            <label class="form-label" for="login-user">Username or Phone</label>
+            <input class="form-input" type="text" id="login-user" placeholder="Enter username or phone" />
+            <div class="form-error" id="login-user-error"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <input class="form-input" type="password" id="login-password" placeholder="Enter your password" />
+            <div class="form-error" id="login-password-error"></div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-btn">Sign In</button>
+        </form>
+        <div class="auth-footer">
+          Don't have an account? <a href="#" onclick="showView('signup'); return false;">Create Account</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       APP LAYOUT (post-auth)
+       ============================================================ -->
+  <div id="app-layout" class="app-layout" style="display:none;">
+
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+      <button class="hamburger-btn" id="hamburger-btn" onclick="toggleSidebar()">☰</button>
+      <span class="mobile-brand">Smart Bill Splitter</span>
+      <button class="hamburger-btn" onclick="toggleDarkMode()">🌓</button>
+    </div>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">💰</div>
+        <div class="sidebar-brand">
+          Smart Bill Splitter
+          <small>Expense Manager</small>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-label">Menu</div>
+        <button class="sidebar-nav-item active" data-nav="dashboard" onclick="navigate('dashboard')">
+          <span class="nav-icon">🏠</span> Dashboard
+        </button>
+        <button class="sidebar-nav-item" data-nav="events" onclick="navigate('events')">
+          <span class="nav-icon">📋</span> Events
+        </button>
+        <button class="sidebar-nav-item" data-nav="analytics" onclick="navigate('analytics-overview')">
+          <span class="nav-icon">📊</span> Analytics
+        </button>
+
+        <div class="sidebar-nav-label">Account</div>
+        <button class="sidebar-nav-item" data-nav="profile" onclick="navigate('profile')">
+          <span class="nav-icon">👤</span> Profile
+        </button>
+        <div class="theme-toggle" onclick="toggleDarkMode()">
+          <span class="nav-icon">🌙</span>
+          <span>Dark Mode</span>
+          <div class="toggle-switch" id="theme-switch"></div>
+        </div>
+        <button class="sidebar-nav-item" onclick="handleLogout()">
+          <span class="nav-icon">🚪</span> Logout
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-avatar" id="sidebar-avatar"></div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="sidebar-username"></div>
+            <div class="sidebar-user-role">Member</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============================================================
+         MAIN CONTENT AREA
+         ============================================================ -->
+    <main class="main-content" id="main-content">
+
+      <!-- ======== DASHBOARD VIEW ======== -->
+      <div id="view-dashboard" class="view">
+        <div class="page-header">
+          <div>
+            <h1 id="greeting-text">Good Evening, User</h1>
+            <p class="greeting-sub">Here's an overview of your expenses</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openCreateEventModal()">
+              ➕ Create Event
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-grid" id="dashboard-stats"></div>
+
+        <!-- Recent events -->
+        <div class="card mb-24">
+          <div class="card-header">
+            <div class="card-title">Recent Events</div>
+            <button class="btn btn-ghost btn-sm" onclick="navigate('events')">View All →</button>
+          </div>
+          <div id="dashboard-recent-events"></div>
+        </div>
+
+        <!-- Recent Activity Timeline -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Activity</div>
+          </div>
+          <div id="dashboard-timeline"></div>
+        </div>
+      </div>
+
+      <!-- ======== EVENTS LIST VIEW ======== -->
+      <div id="view-events" class="view">
+        <div class="page-header">
+          <div>
+            <h1>My Events</h1>
+            <p class="greeting-sub">Manage all your group expenses</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openCreateEventModal()">
+              ➕ Create Event
+            </button>
+          </div>
+        </div>
+
+        <div class="search-filter-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="event-search" placeholder="Search events..." oninput="renderEvents()" />
+          </div>
+        </div>
+
+        <div id="events-list" class="events-grid"></div>
+      </div>
+
+      <!-- ======== EVENT DETAIL VIEW ======== -->
+      <div id="view-event-detail" class="view">
+        <button class="back-link" onclick="navigate('events')">
+          ← Back to Events
+        </button>
+        <div class="page-header">
+          <div>
+            <h1 id="event-detail-name">Event</h1>
+            <p class="greeting-sub" id="event-detail-date"></p>
+          </div>
+          <div class="page-actions no-print">
+            <button class="btn btn-secondary btn-sm" onclick="duplicateCurrentEvent()">📋 Duplicate</button>
+            <button class="btn btn-secondary btn-sm" onclick="clearCurrentEvent()">🧹 Clear</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteCurrentEvent()">🗑️ Delete</button>
+          </div>
+        </div>
+
+        <!-- Event Tabs -->
+        <div class="tabs no-print" id="event-tabs">
+          <button class="tab-btn active" data-tab="tab-members" onclick="switchTab(this, 'tab-members')">👥 Members</button>
+          <button class="tab-btn" data-tab="tab-expenses" onclick="switchTab(this, 'tab-expenses')">💸 Expenses</button>
+          <button class="tab-btn" data-tab="tab-settlements" onclick="switchTab(this, 'tab-settlements')">🤝 Settlements</button>
+          <button class="tab-btn" data-tab="tab-analytics-event" onclick="switchTab(this, 'tab-analytics-event')">📊 Analytics</button>
+          <button class="tab-btn" data-tab="tab-report" onclick="switchTab(this, 'tab-report')">📄 Report</button>
+        </div>
+
+        <!-- TAB: Members -->
+        <div class="tab-content active" id="tab-members">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Members</div>
+            </div>
+            <div class="inline-add">
+              <input class="form-input" type="text" id="member-name-input" placeholder="Enter member name" onkeypress="if(event.key==='Enter'){addMember();}" />
+              <button class="btn btn-primary btn-sm" onclick="addMember()">➕ Add</button>
+            </div>
+            <div id="members-list" class="members-grid"></div>
+          </div>
+        </div>
+
+        <!-- TAB: Expenses -->
+        <div class="tab-content" id="tab-expenses">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Expenses</div>
+              <button class="btn btn-primary btn-sm" onclick="openExpenseModal()">➕ Add Expense</button>
+            </div>
+
+            <div class="search-filter-bar mt-16">
+              <div class="search-input-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="expense-search" placeholder="Search expenses..." oninput="renderExpenses()" />
+              </div>
+              <select class="filter-select" id="expense-filter-category" onchange="renderExpenses()">
+                <option value="">All Categories</option>
+                <option value="Travel">Travel</option>
+                <option value="Food">Food</option>
+                <option value="Hotel">Hotel</option>
+                <option value="Drinks">Drinks</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Miscellaneous">Miscellaneous</option>
+              </select>
+              <input type="date" class="filter-select" id="expense-filter-date" onchange="renderExpenses()" />
+            </div>
+
+            <div id="expense-list" class="expense-list"></div>
+          </div>
+        </div>
+
+        <!-- TAB: Settlements -->
+        <div class="tab-content" id="tab-settlements">
+          <div class="card mb-24">
+            <div class="card-header">
+              <div class="card-title">Member Balances</div>
+              <button class="btn btn-primary btn-sm" onclick="calculateSettlements()">🔄 Calculate Settlements</button>
+            </div>
+            <div id="grand-total" class="stat-grid mt-16"></div>
+            <div id="balance-list" class="balance-grid"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Who Pays Whom</div>
+              <span class="badge badge-info" id="settlement-txn-count"></span>
+            </div>
+            <div id="settlement-summary" class="settlement-summary mt-16"></div>
+            <div id="settlement-list" class="settlement-list"></div>
+          </div>
+        </div>
+
+        <!-- TAB: Event Analytics -->
+        <div class="tab-content" id="tab-analytics-event">
+          <div class="stat-grid" id="event-analytics-stats"></div>
+          <div class="charts-grid" id="event-charts"></div>
+        </div>
+
+        <!-- TAB: Report -->
+        <div class="tab-content" id="tab-report">
+          <div class="page-actions mb-24 no-print">
+            <button class="btn btn-primary btn-sm" onclick="printReport()">🖨️ Print Report</button>
+            <button class="btn btn-secondary btn-sm" onclick="exportJSON()">📥 Export JSON</button>
+            <button class="btn btn-secondary btn-sm" onclick="exportCSV()">📥 Export CSV</button>
+            <button class="btn btn-secondary btn-sm" onclick="exportPDF()">📄 Export PDF</button>
+          </div>
+          <div id="report-content"></div>
+        </div>
+      </div>
+
+      <!-- ======== ANALYTICS OVERVIEW VIEW ======== -->
+      <div id="view-analytics-overview" class="view">
+        <div class="page-header">
+          <div>
+            <h1>Analytics Overview</h1>
+            <p class="greeting-sub">Insights across all your events</p>
+          </div>
+        </div>
+        <div class="stat-grid" id="global-analytics-stats"></div>
+        <div class="charts-grid" id="global-charts"></div>
+      </div>
+
+      <!-- ======== PROFILE VIEW ======== -->
+      <div id="view-profile" class="view">
+        <div class="page-header">
+          <div>
+            <h1>My Profile</h1>
+            <p class="greeting-sub">Manage your account settings</p>
+          </div>
+        </div>
+        <div class="card profile-card" id="profile-card"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
