@@ -117,6 +117,8 @@ function checkAuth() {
       return;
     }
   }
+  // Set initial history state for auth
+  history.replaceState({ view: 'login' }, '', '#login');
   showView('login');
 }
 
@@ -126,12 +128,18 @@ function enterApp() {
   document.getElementById('view-signup').classList.remove('active');
   document.getElementById('app-layout').style.display = 'flex';
   updateSidebarUser();
-  navigate('dashboard');
+  // Set dashboard as base history state (replaceState so back doesn't go to login)
+  history.replaceState({ page: 'dashboard' }, '', '#dashboard');
+  navigate('dashboard', false);
 }
 
 /* ============================================================
-   4. VIEW MANAGEMENT
+   4. VIEW MANAGEMENT (with Browser History API)
    ============================================================ */
+
+/** Track whether we're handling a popstate to avoid pushing duplicate history */
+let _isPopState = false;
+
 function showView(name) {
   // Hide all views
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -141,10 +149,13 @@ function showView(name) {
   // If auth views, hide app layout
   if (name === 'login' || name === 'signup') {
     document.getElementById('app-layout').style.display = 'none';
+    if (!_isPopState) {
+      history.pushState({ view: name }, '', '#' + name);
+    }
   }
 }
 
-function navigate(page) {
+function navigate(page, pushHistory = true) {
   // Close mobile sidebar
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
@@ -162,6 +173,11 @@ function navigate(page) {
   const viewEl = document.getElementById('view-' + page);
   if (viewEl) viewEl.classList.add('active');
 
+  // Push to browser history (unless triggered by popstate)
+  if (pushHistory && !_isPopState) {
+    history.pushState({ page: page, eventId: currentEventId }, '', '#' + page);
+  }
+
   // Render relevant page
   switch (page) {
     case 'dashboard': renderDashboard(); break;
@@ -171,6 +187,41 @@ function navigate(page) {
     case 'profile': renderProfile(); break;
   }
 }
+
+/** Handle browser back/forward button */
+window.addEventListener('popstate', function(e) {
+  _isPopState = true;
+
+  // If a modal is open, close it and stop
+  const modalOverlay = document.getElementById('modal-overlay');
+  if (modalOverlay && modalOverlay.classList.contains('show')) {
+    closeModal();
+    _isPopState = false;
+    return;
+  }
+
+  const state = e.state;
+
+  if (state && state.view) {
+    // Auth views
+    showView(state.view);
+  } else if (state && state.page) {
+    // App views
+    if (state.page === 'event-detail' && state.eventId) {
+      currentEventId = state.eventId;
+    }
+    navigate(state.page, false);
+  } else {
+    // No state — go to dashboard if logged in, else login
+    if (currentUser) {
+      navigate('dashboard', false);
+    } else {
+      showView('login');
+    }
+  }
+
+  _isPopState = false;
+});
 
 /* ============================================================
    5. SIDEBAR & THEME
@@ -258,10 +309,18 @@ function openModal(title, bodyHTML, footerHTML) {
   document.getElementById('modal-body').innerHTML = bodyHTML;
   document.getElementById('modal-footer').innerHTML = footerHTML || '';
   document.getElementById('modal-overlay').classList.add('show');
+  // Push a history entry so mobile back button closes the modal
+  history.pushState({ modal: true }, '', '');
 }
 
 function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('show');
+  const overlay = document.getElementById('modal-overlay');
+  if (!overlay.classList.contains('show')) return;
+  overlay.classList.remove('show');
+  // If the current history state is the modal entry, go back to remove it
+  if (history.state && history.state.modal && !_isPopState) {
+    history.back();
+  }
 }
 
 /** Confirm dialog (returns promise) */
