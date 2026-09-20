@@ -31,118 +31,9 @@
   </div>
 
   <!-- ============================================================
-       AUTH: SIGNUP PAGE
+       APP LAYOUT (Direct Dashboard Access)
        ============================================================ -->
-  <div id="view-signup" class="view">
-    <div class="auth-wrapper">
-      <div class="auth-card">
-        <div class="auth-logo">
-          <div class="auth-logo-icon">💰</div>
-          <div class="auth-logo-text">
-            <h1>Smart Bill Splitter</h1>
-            <p>Split expenses, not friendships</p>
-          </div>
-        </div>
-        <h2>Create Account</h2>
-        <p class="auth-subtitle">Sign up to start splitting bills smartly</p>
-        <form id="signup-form" autocomplete="off">
-          <div class="form-group">
-            <label class="form-label" for="signup-name">Full Name</label>
-            <input class="form-input" type="text" id="signup-name" placeholder="Enter your full name" />
-            <div class="form-error" id="signup-name-error"></div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="signup-phone">Phone Number</label>
-            <input class="form-input" type="tel" id="signup-phone" placeholder="Enter phone number" />
-            <div class="form-error" id="signup-phone-error"></div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="signup-username">Username</label>
-            <input class="form-input" type="text" id="signup-username" placeholder="Choose a username" />
-            <div class="form-error" id="signup-username-error"></div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="signup-password">Password</label>
-            <div class="password-input-wrap">
-              <input class="form-input" type="password" id="signup-password" placeholder="Minimum 8 characters" />
-              <button type="button" class="password-toggle" onclick="togglePasswordVisibility('signup-password', this)" aria-label="Show password">
-                <svg class="eye-icon eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg class="eye-icon eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-              </button>
-            </div>
-            <div class="form-error" id="signup-password-error"></div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="signup-confirm">Confirm Password</label>
-            <div class="password-input-wrap">
-              <input class="form-input" type="password" id="signup-confirm" placeholder="Re-enter password" />
-              <button type="button" class="password-toggle" onclick="togglePasswordVisibility('signup-confirm', this)" aria-label="Show password">
-                <svg class="eye-icon eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg class="eye-icon eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-              </button>
-            </div>
-            <div class="form-error" id="signup-confirm-error"></div>
-          </div>
-          <button type="submit" class="btn btn-primary btn-block btn-lg" id="signup-btn">Create Account</button>
-        </form>
-        <div class="auth-footer">
-          Already have an account? <a href="#" onclick="showView('login'); return false;">Sign In</a>
-        </div>
-        <footer class="app-footer">
-          Developed by <a href="https://knitinnn.github.io/portfolio/" target="_blank" rel="noopener noreferrer">Nitin.dev</a>
-        </footer>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================================
-       AUTH: LOGIN PAGE
-       ============================================================ -->
-  <div id="view-login" class="view">
-    <div class="auth-wrapper">
-      <div class="auth-card">
-        <div class="auth-logo">
-          <div class="auth-logo-icon">💰</div>
-          <div class="auth-logo-text">
-            <h1>Smart Bill Splitter</h1>
-            <p>Split expenses, not friendships</p>
-          </div>
-        </div>
-        <h2>Welcome Back</h2>
-        <p class="auth-subtitle">Sign in to continue managing your expenses</p>
-        <form id="login-form" autocomplete="off">
-          <div class="form-group">
-            <label class="form-label" for="login-user">Username or Phone</label>
-            <input class="form-input" type="text" id="login-user" placeholder="Enter username or phone" />
-            <div class="form-error" id="login-user-error"></div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="login-password">Password</label>
-            <div class="password-input-wrap">
-              <input class="form-input" type="password" id="login-password" placeholder="Enter your password" />
-              <button type="button" class="password-toggle" onclick="togglePasswordVisibility('login-password', this)" aria-label="Show password">
-                <svg class="eye-icon eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg class="eye-icon eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-              </button>
-            </div>
-            <div class="form-error" id="login-password-error"></div>
-          </div>
-          <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-btn">Sign In</button>
-        </form>
-        <div class="auth-footer">
-          Don't have an account? <a href="#" onclick="showView('signup'); return false;">Create Account</a>
-        </div>
-        <footer class="app-footer">
-          Developed by <a href="https://knitinnn.github.io/portfolio/" target="_blank" rel="noopener noreferrer">Nitin.dev</a>
-        </footer>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================================
-       APP LAYOUT (post-auth)
-       ============================================================ -->
-  <div id="app-layout" class="app-layout" style="display:none;">
+  <div id="app-layout" class="app-layout">
 
     <!-- Mobile Header -->
     <div class="mobile-header">
@@ -174,26 +65,23 @@
           <span class="nav-icon">📊</span> Analytics
         </button>
 
-        <div class="sidebar-nav-label">Account</div>
-        <button class="sidebar-nav-item" data-nav="profile" onclick="navigate('profile')">
-          <span class="nav-icon">👤</span> Profile
-        </button>
+        <div class="sidebar-nav-label">Preferences & Data</div>
         <div class="theme-toggle" onclick="toggleDarkMode()">
           <span class="nav-icon">🌙</span>
           <span>Dark Mode</span>
           <div class="toggle-switch" id="theme-switch"></div>
         </div>
-        <button class="sidebar-nav-item" onclick="handleLogout()">
-          <span class="nav-icon">🚪</span> Logout
+        <button class="sidebar-nav-item sidebar-danger-item" onclick="deleteAllEvents()">
+          <span class="nav-icon">🗑️</span> Delete All Data
         </button>
       </nav>
 
       <div class="sidebar-footer">
         <div class="sidebar-user">
-          <div class="sidebar-avatar" id="sidebar-avatar"></div>
+          <div class="sidebar-avatar">💾</div>
           <div class="sidebar-user-info">
-            <div class="sidebar-user-name" id="sidebar-username"></div>
-            <div class="sidebar-user-role">Member</div>
+            <div class="sidebar-user-name">Local Storage</div>
+            <div class="sidebar-user-role">Saved locally in browser</div>
           </div>
         </div>
       </div>
@@ -208,7 +96,7 @@
       <div id="view-dashboard" class="view">
         <div class="page-header">
           <div>
-            <h1 id="greeting-text">Good Evening, User</h1>
+            <h1 id="greeting-text">Welcome Back</h1>
             <p class="greeting-sub">Here's an overview of your expenses</p>
           </div>
           <div class="page-actions">
@@ -249,8 +137,11 @@
             <h1>My Events</h1>
             <p class="greeting-sub">Manage all your group expenses</p>
           </div>
-          <div class="page-actions">
-            <button class="btn btn-primary" onclick="openCreateEventModal()">
+          <div class="page-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="deleteAllEvents()" title="Delete all events and data">
+              🗑️ Delete All
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="openCreateEventModal()">
               ➕ Create Event
             </button>
           </div>
@@ -389,20 +280,6 @@
         </div>
         <div class="stat-grid" id="global-analytics-stats"></div>
         <div class="charts-grid" id="global-charts"></div>
-        <footer class="app-footer">
-          Developed by <a href="https://knitinnn.github.io/portfolio/" target="_blank" rel="noopener noreferrer">Nitin.dev</a>
-        </footer>
-      </div>
-
-      <!-- ======== PROFILE VIEW ======== -->
-      <div id="view-profile" class="view">
-        <div class="page-header">
-          <div>
-            <h1>My Profile</h1>
-            <p class="greeting-sub">Manage your account settings</p>
-          </div>
-        </div>
-        <div class="card profile-card" id="profile-card"></div>
         <footer class="app-footer">
           Developed by <a href="https://knitinnn.github.io/portfolio/" target="_blank" rel="noopener noreferrer">Nitin.dev</a>
         </footer>

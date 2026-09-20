@@ -227,6 +227,15 @@ input, select, textarea, button {
   flex-shrink: 0;
 }
 
+.sidebar-danger-item {
+  color: var(--danger);
+}
+
+.sidebar-danger-item:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
 .sidebar-nav-label {
   font-size: 11px;
   font-weight: 600;
@@ -424,7 +433,28 @@ input, select, textarea, button {
 .auth-card .auth-subtitle {
   color: var(--text-muted);
   font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.auth-storage-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
   margin-bottom: 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.auth-storage-note svg {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  color: var(--accent);
 }
 
 .auth-footer {
@@ -675,6 +705,18 @@ input[type="date"] {
 }
 .btn-danger:hover {
   box-shadow: 0 4px 16px rgba(198,40,40,0.30);
+  transform: translateY(-1px);
+}
+
+.btn-danger-outline {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.btn-danger-outline:hover {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(198,40,40,0.25);
   transform: translateY(-1px);
 }
 

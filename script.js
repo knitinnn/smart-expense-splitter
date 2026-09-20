@@ -34,8 +34,6 @@ const Store = {
 
 /** Storage keys */
 const KEYS = {
-  USERS: 'sbs_users',
-  LOGGED_IN: 'sbs_loggedInUser',
   EVENTS: 'sbs_events',
   MEMBERS: 'sbs_members',
   EXPENSES: 'sbs_expenses',
@@ -96,7 +94,6 @@ const CAT_CLASS = {
 /* ============================================================
    2. CURRENT STATE
    ============================================================ */
-let currentUser = null;
 let currentEventId = null;
 
 /* ============================================================
@@ -104,33 +101,15 @@ let currentEventId = null;
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
-  checkAuth();
+  initApp();
 });
 
-function checkAuth() {
-  const userId = Store.get(KEYS.LOGGED_IN);
-  if (userId) {
-    const users = Store.get(KEYS.USERS) || [];
-    currentUser = users.find(u => u.id === userId);
-    if (currentUser) {
-      enterApp();
-      return;
-    }
-  }
-  // Set initial history state for auth
-  history.replaceState({ view: 'login' }, '', '#login');
-  showView('login');
-}
-
-function enterApp() {
-  // Hide top-level auth views to prevent overlapping layouts
-  document.getElementById('view-login').classList.remove('active');
-  document.getElementById('view-signup').classList.remove('active');
-  document.getElementById('app-layout').style.display = 'flex';
-  updateSidebarUser();
-  // Set dashboard as base history state (replaceState so back doesn't go to login)
-  history.replaceState({ page: 'dashboard' }, '', '#dashboard');
-  navigate('dashboard', false);
+function initApp() {
+  const hash = window.location.hash.replace('#', '') || 'dashboard';
+  const validPages = ['dashboard', 'events', 'analytics-overview'];
+  const pageToLoad = validPages.includes(hash) ? hash : 'dashboard';
+  history.replaceState({ page: pageToLoad }, '', '#' + pageToLoad);
+  navigate(pageToLoad, false);
 }
 
 /* ============================================================
@@ -140,27 +119,12 @@ function enterApp() {
 /** Track whether we're handling a popstate to avoid pushing duplicate history */
 let _isPopState = false;
 
-function showView(name) {
-  // Hide all views
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  const target = document.getElementById('view-' + name);
-  if (target) target.classList.add('active');
-
-  // If auth views, hide app layout
-  if (name === 'login' || name === 'signup') {
-    document.getElementById('app-layout').style.display = 'none';
-    if (!_isPopState) {
-      history.pushState({ view: name }, '', '#' + name);
-    }
-  }
-}
-
 function navigate(page, pushHistory = true) {
   // Close mobile sidebar
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
-  sidebar.classList.remove('open');
-  overlay.classList.remove('show');
+  if (sidebar) sidebar.classList.remove('open');
+  if (overlay) overlay.classList.remove('show');
 
   // Update active nav
   document.querySelectorAll('.sidebar-nav-item').forEach(btn => {
@@ -184,7 +148,6 @@ function navigate(page, pushHistory = true) {
     case 'events': renderEvents(); break;
     case 'event-detail': renderEventDetail(); break;
     case 'analytics-overview': renderGlobalAnalytics(); break;
-    case 'profile': renderProfile(); break;
   }
 }
 
@@ -202,22 +165,13 @@ window.addEventListener('popstate', function(e) {
 
   const state = e.state;
 
-  if (state && state.view) {
-    // Auth views
-    showView(state.view);
-  } else if (state && state.page) {
-    // App views
+  if (state && state.page) {
     if (state.page === 'event-detail' && state.eventId) {
       currentEventId = state.eventId;
     }
     navigate(state.page, false);
   } else {
-    // No state — go to dashboard if logged in, else login
-    if (currentUser) {
-      navigate('dashboard', false);
-    } else {
-      showView('login');
-    }
+    navigate('dashboard', false);
   }
 
   _isPopState = false;
@@ -229,14 +183,8 @@ window.addEventListener('popstate', function(e) {
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
-  sidebar.classList.toggle('open');
-  overlay.classList.toggle('show');
-}
-
-function updateSidebarUser() {
-  if (!currentUser) return;
-  document.getElementById('sidebar-avatar').textContent = initials(currentUser.fullName);
-  document.getElementById('sidebar-username').textContent = currentUser.fullName;
+  if (sidebar) sidebar.classList.toggle('open');
+  if (overlay) overlay.classList.toggle('show');
 }
 
 function initTheme() {
@@ -341,119 +289,7 @@ function confirmDialog(title, message) {
 }
 
 /* ============================================================
-   8. AUTHENTICATION – SIGNUP
-   ============================================================ */
-document.getElementById('signup-form').addEventListener('submit', function (e) {
-  e.preventDefault();
-  clearFormErrors('signup');
-
-  const fullName = document.getElementById('signup-name').value.trim();
-  const phone = document.getElementById('signup-phone').value.trim();
-  const username = document.getElementById('signup-username').value.trim();
-  const password = document.getElementById('signup-password').value;
-  const confirm = document.getElementById('signup-confirm').value;
-
-  let valid = true;
-
-  if (!fullName) { showFieldError('signup-name', 'Full name is required'); valid = false; }
-  if (!phone) { showFieldError('signup-phone', 'Phone number is required'); valid = false; }
-  if (!username) { showFieldError('signup-username', 'Username is required'); valid = false; }
-  if (password.length < 8) { showFieldError('signup-password', 'Password must be at least 8 characters'); valid = false; }
-  if (password !== confirm) { showFieldError('signup-confirm', 'Passwords do not match'); valid = false; }
-
-  if (!valid) return;
-
-  const users = Store.get(KEYS.USERS) || [];
-  if (users.some(u => u.phone === phone)) {
-    showFieldError('signup-phone', 'Phone number already registered');
-    return;
-  }
-  if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-    showFieldError('signup-username', 'Username already taken');
-    return;
-  }
-
-  const newUser = {
-    id: uuid(),
-    fullName,
-    phone,
-    username,
-    password: btoa(password), // simple encoding (not production-grade hashing)
-    createdAt: new Date().toISOString()
-  };
-  users.push(newUser);
-  Store.set(KEYS.USERS, users);
-
-  showToast('success', 'Account Created', 'You can now sign in with your credentials');
-  document.getElementById('signup-form').reset();
-  showView('login');
-});
-
-/* ============================================================
-   9. AUTHENTICATION – LOGIN
-   ============================================================ */
-document.getElementById('login-form').addEventListener('submit', function (e) {
-  e.preventDefault();
-  clearFormErrors('login');
-
-  const userInput = document.getElementById('login-user').value.trim();
-  const password = document.getElementById('login-password').value;
-
-  let valid = true;
-  if (!userInput) { showFieldError('login-user', 'Please enter username or phone'); valid = false; }
-  if (!password) { showFieldError('login-password', 'Please enter your password'); valid = false; }
-  if (!valid) return;
-
-  const users = Store.get(KEYS.USERS) || [];
-  const user = users.find(u =>
-    (u.username.toLowerCase() === userInput.toLowerCase() || u.phone === userInput) &&
-    atob(u.password) === password
-  );
-
-  if (!user) {
-    showFieldError('login-user', 'Invalid credentials');
-    showFieldError('login-password', 'Invalid username/phone or password');
-    return;
-  }
-
-  Store.set(KEYS.LOGGED_IN, user.id);
-  currentUser = user;
-  document.getElementById('login-form').reset();
-  showToast('success', 'Welcome Back!', `Signed in as ${user.fullName}`);
-  enterApp();
-});
-
-function handleLogout() {
-  Store.remove(KEYS.LOGGED_IN);
-  currentUser = null;
-  currentEventId = null;
-  document.getElementById('app-layout').style.display = 'none';
-  showView('login');
-  showToast('info', 'Signed Out', 'You have been logged out');
-}
-
-/* ============================================================
-   10. FORM VALIDATION HELPERS
-   ============================================================ */
-function showFieldError(fieldId, msg) {
-  const input = document.getElementById(fieldId);
-  const error = document.getElementById(fieldId + '-error');
-  if (input) input.classList.add('error');
-  if (error) { error.textContent = msg; error.classList.add('show'); }
-}
-
-function clearFormErrors(prefix) {
-  document.querySelectorAll(`[id^="${prefix}-"]`).forEach(el => {
-    el.classList.remove('error');
-  });
-  document.querySelectorAll(`[id^="${prefix}-"][id$="-error"]`).forEach(el => {
-    el.classList.remove('show');
-    el.textContent = '';
-  });
-}
-
-/* ============================================================
-   11. DASHBOARD
+   8. DASHBOARD
    ============================================================ */
 function renderDashboard() {
   // Greeting
@@ -462,7 +298,8 @@ function renderDashboard() {
   if (hour < 12) greeting = 'Good Morning';
   else if (hour < 17) greeting = 'Good Afternoon';
 
-  document.getElementById('greeting-text').textContent = `${greeting}, ${currentUser.fullName}`;
+  const greetingEl = document.getElementById('greeting-text');
+  if (greetingEl) greetingEl.textContent = greeting;
 
   // Stats
   const events = getUserEvents();
@@ -473,67 +310,72 @@ function renderDashboard() {
     return s + settlements.length;
   }, 0);
 
-  document.getElementById('dashboard-stats').innerHTML = `
-    <div class="stat-card animate-slide-up">
-      <div class="stat-icon primary">📋</div>
-      <div class="stat-info">
-        <div class="stat-value">${events.length}</div>
-        <div class="stat-label">Total Events</div>
+  const statsEl = document.getElementById('dashboard-stats');
+  if (statsEl) {
+    statsEl.innerHTML = `
+      <div class="stat-card animate-slide-up">
+        <div class="stat-icon primary">📋</div>
+        <div class="stat-info">
+          <div class="stat-value">${events.length}</div>
+          <div class="stat-label">Total Events</div>
+        </div>
       </div>
-    </div>
-    <div class="stat-card animate-slide-up" style="animation-delay:0.05s">
-      <div class="stat-icon success">💰</div>
-      <div class="stat-info">
-        <div class="stat-value">${formatCurrency(totalExpenseAmount)}</div>
-        <div class="stat-label">Total Expenses</div>
+      <div class="stat-card animate-slide-up" style="animation-delay:0.05s">
+        <div class="stat-icon success">💰</div>
+        <div class="stat-info">
+          <div class="stat-value">${formatCurrency(totalExpenseAmount)}</div>
+          <div class="stat-label">Total Expenses</div>
+        </div>
       </div>
-    </div>
-    <div class="stat-card animate-slide-up" style="animation-delay:0.1s">
-      <div class="stat-icon info">🤝</div>
-      <div class="stat-info">
-        <div class="stat-value">${totalSettlements}</div>
-        <div class="stat-label">Total Settlements</div>
+      <div class="stat-card animate-slide-up" style="animation-delay:0.1s">
+        <div class="stat-icon info">🤝</div>
+        <div class="stat-info">
+          <div class="stat-value">${totalSettlements}</div>
+          <div class="stat-label">Total Settlements</div>
+        </div>
       </div>
-    </div>
-    <div class="stat-card animate-slide-up" style="animation-delay:0.15s">
-      <div class="stat-icon warning">📊</div>
-      <div class="stat-info">
-        <div class="stat-value">${allExpenses.length}</div>
-        <div class="stat-label">Expense Entries</div>
+      <div class="stat-card animate-slide-up" style="animation-delay:0.15s">
+        <div class="stat-icon warning">📊</div>
+        <div class="stat-info">
+          <div class="stat-value">${allExpenses.length}</div>
+          <div class="stat-label">Expense Entries</div>
+        </div>
       </div>
-    </div>
-  `;
+    `;
+  }
 
   // Recent events
   const recentEventsEl = document.getElementById('dashboard-recent-events');
-  if (events.length === 0) {
-    recentEventsEl.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">📋</div>
-        <h3>No Events Yet</h3>
-        <p>Create your first event to start splitting expenses</p>
-        <button class="btn btn-primary" onclick="openCreateEventModal()">➕ Create Event</button>
-      </div>`;
-  } else {
-    const recent = events.slice(-3).reverse();
-    recentEventsEl.innerHTML = recent.map(ev => {
-      const members = getEventMembers(ev.id);
-      const expenses = getEventExpenses(ev.id);
-      const total = expenses.reduce((s, e) => s + e.amount, 0);
-      return `
-        <div class="expense-item" style="cursor:pointer" onclick="openEventDetail('${ev.id}')">
-          <div class="expense-cat-icon cat-travel">📋</div>
-          <div class="expense-info">
-            <div class="expense-name">${esc(ev.name)}</div>
-            <div class="expense-meta">
-              <span>📅 ${formatDate(ev.date)}</span>
-              <span>👥 ${members.length} members</span>
-              <span>💸 ${expenses.length} expenses</span>
-            </div>
-          </div>
-          <div class="expense-amount">${formatCurrency(total)}</div>
+  if (recentEventsEl) {
+    if (events.length === 0) {
+      recentEventsEl.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <h3>No Events Yet</h3>
+          <p>Create your first event to start splitting expenses</p>
+          <button class="btn btn-primary" onclick="openCreateEventModal()">➕ Create Event</button>
         </div>`;
-    }).join('');
+    } else {
+      const recent = events.slice(-3).reverse();
+      recentEventsEl.innerHTML = recent.map(ev => {
+        const members = getEventMembers(ev.id);
+        const expenses = getEventExpenses(ev.id);
+        const total = expenses.reduce((s, e) => s + e.amount, 0);
+        return `
+          <div class="expense-item" style="cursor:pointer" onclick="openEventDetail('${ev.id}')">
+            <div class="expense-cat-icon cat-travel">📋</div>
+            <div class="expense-info">
+              <div class="expense-name">${esc(ev.name)}</div>
+              <div class="expense-meta">
+                <span>📅 ${formatDate(ev.date)}</span>
+                <span>👥 ${members.length} members</span>
+                <span>💸 ${expenses.length} expenses</span>
+              </div>
+            </div>
+            <div class="expense-amount">${formatCurrency(total)}</div>
+          </div>`;
+      }).join('');
+    }
   }
 
   // Recent activity
@@ -542,11 +384,11 @@ function renderDashboard() {
 
 function renderTimeline() {
   const activities = (Store.get(KEYS.ACTIVITIES) || [])
-    .filter(a => a.userId === currentUser.id)
     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
     .slice(0, 10);
 
   const el = document.getElementById('dashboard-timeline');
+  if (!el) return;
   if (activities.length === 0) {
     el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📝</div><h3>No Recent Activity</h3><p>Your activity will show up here</p></div>`;
     return;
@@ -562,7 +404,6 @@ function addActivity(eventId, message) {
   const activities = Store.get(KEYS.ACTIVITIES) || [];
   activities.push({
     id: uuid(),
-    userId: currentUser.id,
     eventId,
     message,
     timestamp: new Date().toISOString()
@@ -571,10 +412,10 @@ function addActivity(eventId, message) {
 }
 
 /* ============================================================
-   12. EVENT MANAGEMENT
+   9. EVENT MANAGEMENT
    ============================================================ */
 function getUserEvents() {
-  return (Store.get(KEYS.EVENTS) || []).filter(e => e.userId === currentUser.id);
+  return Store.get(KEYS.EVENTS) || [];
 }
 
 function getEventById(id) {
@@ -613,7 +454,6 @@ function handleCreateEvent() {
   const events = Store.get(KEYS.EVENTS) || [];
   const newEvent = {
     id: uuid(),
-    userId: currentUser.id,
     name,
     date,
     description: desc,
@@ -636,6 +476,7 @@ function renderEvents() {
   }
 
   const container = document.getElementById('events-list');
+  if (!container) return;
   if (events.length === 0) {
     container.innerHTML = `
       <div class="empty-state" style="grid-column: 1/-1">
@@ -654,8 +495,8 @@ function renderEvents() {
     return `
       <div class="event-card" onclick="openEventDetail('${ev.id}')">
         <div class="event-card-actions" onclick="event.stopPropagation()">
-          <button class="btn btn-ghost btn-icon btn-sm" title="Duplicate" onclick="duplicateEvent('${ev.id}')">📋</button>
-          <button class="btn btn-ghost btn-icon btn-sm" title="Delete" onclick="deleteEvent('${ev.id}')">🗑️</button>
+          <button class="btn btn-ghost btn-icon btn-sm" title="Duplicate Event" onclick="duplicateEvent('${ev.id}')">📋</button>
+          <button class="btn btn-ghost btn-icon btn-sm" title="Delete Event" onclick="deleteEvent('${ev.id}')">🗑️</button>
         </div>
         <div class="event-card-title">${esc(ev.name)}</div>
         <div class="event-card-date">📅 ${formatDate(ev.date)}</div>
@@ -771,6 +612,34 @@ async function deleteEvent(eventId) {
 
 function deleteCurrentEvent() {
   deleteEvent(currentEventId);
+}
+
+async function deleteAllEvents() {
+  const events = Store.get(KEYS.EVENTS) || [];
+  if (events.length === 0) {
+    showToast('info', 'No Events', 'There are no events to delete');
+    return;
+  }
+  const ok = await confirmDialog(
+    'Delete All Events',
+    'Are you sure you want to delete ALL events, members, expenses, and activity history? This action cannot be undone.'
+  );
+  if (!ok) return;
+
+  Store.set(KEYS.EVENTS, []);
+  Store.set(KEYS.MEMBERS, []);
+  Store.set(KEYS.EXPENSES, []);
+  Store.set(KEYS.ACTIVITIES, []);
+  currentEventId = null;
+
+  showToast('success', 'All Data Deleted', 'All events and expenses have been cleared');
+
+  const currentHash = window.location.hash.replace('#', '') || 'dashboard';
+  if (currentHash === 'event-detail') {
+    navigate('events');
+  } else {
+    navigate(currentHash, false);
+  }
 }
 
 async function clearCurrentEvent() {
@@ -1932,38 +1801,7 @@ function downloadFile(content, filename, mimeType) {
 }
 
 /* ============================================================
-   22. USER PROFILE
-   ============================================================ */
-function renderProfile() {
-  if (!currentUser) return;
-  const events = getUserEvents();
-  const totalExpenses = getAllUserExpenses().reduce((s, e) => s + e.amount, 0);
-
-  const el = document.getElementById('profile-card');
-  el.innerHTML = `
-    <div class="profile-header">
-      <div class="profile-avatar">${initials(currentUser.fullName)}</div>
-      <div class="profile-info">
-        <h2>${esc(currentUser.fullName)}</h2>
-        <p>@${esc(currentUser.username)}</p>
-      </div>
-    </div>
-    <div class="profile-details">
-      <div class="profile-row"><span class="profile-row-label">Full Name</span><span class="profile-row-value">${esc(currentUser.fullName)}</span></div>
-      <div class="profile-row"><span class="profile-row-label">Username</span><span class="profile-row-value">${esc(currentUser.username)}</span></div>
-      <div class="profile-row"><span class="profile-row-label">Phone</span><span class="profile-row-value">${esc(currentUser.phone)}</span></div>
-      <div class="profile-row"><span class="profile-row-label">Member Since</span><span class="profile-row-value">${formatDate(currentUser.createdAt)}</span></div>
-      <div class="profile-row"><span class="profile-row-label">Events Created</span><span class="profile-row-value">${events.length}</span></div>
-      <div class="profile-row"><span class="profile-row-label">Total Expenses</span><span class="profile-row-value">${formatCurrency(totalExpenses)}</span></div>
-    </div>
-    <div class="mt-24">
-      <button class="btn btn-danger btn-block" onclick="handleLogout()">🚪 Logout</button>
-    </div>
-  `;
-}
-
-/* ============================================================
-   23. KEYBOARD & MISC
+   22. KEYBOARD & MISC
    ============================================================ */
 // Close modal on Escape
 document.addEventListener('keydown', e => {
